@@ -386,7 +386,150 @@ app.get('/search', (req, res) => {
 });
 ```
 
-These detailed Express.js notes cover various aspects of building web applications, including handling requests, routing, response handling, and key concepts like path parameters and query strings. By following these steps and examples, you'll be well-equipped to start creating powerful server-side applications using Express.js.
+
+
+# Middlewares in Express
+
+In Express, middlewares are essential components that play a crucial role in processing HTTP requests and responses. They allow you to perform various tasks before, during, or after the request-response cycle. This guide will explore what middlewares are, how to use them, and their practical applications.
+
+## What Are Middlewares?
+
+Middlewares are functions in Express that have access to the request (`req`) and response (`res`) objects. They can also access the next middleware function in the application's request-response cycle. Middlewares are executed in the order they are defined in the code.
+
+### Accessing the Request and Response Objects
+
+When creating a middleware, you can access information from the incoming HTTP request and manipulate the outgoing HTTP response. The request object (`req`) contains details such as HTTP headers, parameters, and the request body, while the response object (`res`) allows you to send back data, such as HTML, JSON, or status codes.
+
+### Chaining Middlewares
+
+You can chain multiple middleware functions together in your application. This chaining can be used for various purposes, such as processing authentication, logging, and error handling. When a middleware function calls the `next()` function, it passes control to the next middleware in the chain.
+
+```javascript
+// Example of two chained middlewares
+app.use((req, res, next) => {
+    console.log("Hi, I am middleware");
+    next(); // Call next to move to the next middleware
+});
+
+app.use((req, res, next) => {
+    console.log("Hi, I am the second middleware");
+    next();
+});
+```
+
+In this example, the first middleware logs a message, and then it calls `next()`, passing control to the second middleware, which logs another message.
+
+## What Do Middlewares Do?
+
+Middlewares serve various purposes in an Express application:
+
+- **Logging**: Middlewares can log request information, such as the HTTP method, hostname, path, and timestamps. This information is valuable for debugging and monitoring.
+  
+- **Authentication**: Middlewares can be used to check if a user is authenticated before allowing access to specific routes or resources.
+  
+- **Route-Specific Operations**: You can apply middlewares to specific routes. For example, you might want to verify an API token for specific routes or perform data validation only for certain endpoints.
+  
+- **Error Handling**: Middlewares can handle errors and provide meaningful error messages to the client. Express has a default error handler for unhandled exceptions.
+
+### Using Next()
+
+The `next()` function is a critical part of middleware functions. Calling `next()` passes control to the next middleware in the chain. If `next()` is not called, the request-response cycle will be terminated, and the response will be sent back to the client.
+
+## Types of middleware
+1. Express Built-in
+2. Third-party
+3. Custom middleware
+
+### Express Built-in and Third-party Middlewares
+
+Express comes with built-in middlewares like `express.json()`, `express.urlencoded()`, and more for parsing request bodies. Additionally, you can use third-party middlewares to extend the functionality of your Express application. Common third-party middlewares include `morgan` for request logging and `helmet` for security.
+
+```javascript
+const express = require("express");
+const app = express();
+
+// Built-in middleware for parsing JSON
+app.use(express.json());
+
+// Third-party middleware for request logging
+const morgan = require("morgan");
+app.use(morgan("combined"));
+```
+
+### Creating Utility Middleware and Logger
+
+You can create your own utility middlewares to perform tasks such as logging or adding custom properties to the request object.
+
+```javascript
+// Logger middleware
+app.use((req, res, next) => {
+    req.time = new Date(Date.now()).toString();
+    console.log(req.method, req.hostname, req.path, req.time);
+    next();
+});
+```
+
+In the above example, the middleware adds a `time` property to the request object, logs the request method, hostname, path, and the time it was received.
+
+### Exploring `app.use()`
+
+The `app.use()` method is used to mount a middleware function to a specific route. Middleware functions added using `app.use()` will be executed for all HTTP methods on that route.
+
+```javascript
+app.use("/random", (req, res, next) => {
+    console.log("I am only for the '/random' route");
+});
+```
+
+This middleware will be executed only for requests to the `/random` route.
+
+### API Token as Query String
+
+You can create a middleware that checks for an API token passed as a query parameter.
+
+```javascript
+const checkToken = (req, res, next) => {
+    let { token } = req.query;
+    if (token === "giveaccess") {
+        next();
+    }
+    res.send("ACCESS DENIED!");
+};
+```
+
+The `checkToken` middleware checks if the token query parameter is equal to "giveaccess" and allows or denies access accordingly.
+
+### Passing Multiple Middleware
+
+Multiple middleware functions can be added to a route, and they will be executed in the order they are defined. This allows you to handle various aspects of a request.
+
+```javascript
+app.get("/api", checkToken, (req, res) => {
+    res.send("Data from an authenticated route");
+});
+```
+
+In this example, the route `/api` uses the `checkToken` middleware to ensure access is granted only with a valid API token.
+
+### Error Handling (Express Default)
+
+Express has a default error-handling mechanism. When an error occurs within a middleware or route handler, you can pass the error to the `next()` function, and it will be caught by the default error handler.
+
+```javascript
+app.get("/wrong", (req, res) => {
+    // Simulating an error
+    // Unhandled errors will be caught by the default error handler
+    abc = abc;
+});
+```
+
+In this example, we intentionally create an error by trying to access an undefined variable. Express will handle this error, and an error response will be sent to the client.
+
+## Conclusion
+
+Middleware functions in Express are powerful tools for controlling and managing the flow of HTTP requests and responses. They enable you to handle various aspects of request processing, including logging, authentication, route-specific
+
+ operations, and error handling. By understanding and using middleware effectively, you can build robust and feature-rich web applications.
 
 
 ---------------------------------------------------------------------------------------
@@ -2469,144 +2612,6 @@ Remember to install and configure Express, Mongoose, and EJS in your project to 
 
 ---------------------------------------------------------------------------------------
 
-
-# Middlewares in Express
-
-In Express, middlewares are essential components that play a crucial role in processing HTTP requests and responses. They allow you to perform various tasks before, during, or after the request-response cycle. This guide will explore what middlewares are, how to use them, and their practical applications.
-
-## What Are Middlewares?
-
-Middlewares are functions in Express that have access to the request (`req`) and response (`res`) objects. They can also access the next middleware function in the application's request-response cycle. Middlewares are executed in the order they are defined in the code.
-
-### Accessing the Request and Response Objects
-
-When creating a middleware, you can access information from the incoming HTTP request and manipulate the outgoing HTTP response. The request object (`req`) contains details such as HTTP headers, parameters, and the request body, while the response object (`res`) allows you to send back data, such as HTML, JSON, or status codes.
-
-### Chaining Middlewares
-
-You can chain multiple middleware functions together in your application. This chaining can be used for various purposes, such as processing authentication, logging, and error handling. When a middleware function calls the `next()` function, it passes control to the next middleware in the chain.
-
-```javascript
-// Example of two chained middlewares
-app.use((req, res, next) => {
-    console.log("Hi, I am middleware");
-    next(); // Call next to move to the next middleware
-});
-
-app.use((req, res, next) => {
-    console.log("Hi, I am the second middleware");
-    next();
-});
-```
-
-In this example, the first middleware logs a message, and then it calls `next()`, passing control to the second middleware, which logs another message.
-
-## What Do Middlewares Do?
-
-Middlewares serve various purposes in an Express application:
-
-- **Logging**: Middlewares can log request information, such as the HTTP method, hostname, path, and timestamps. This information is valuable for debugging and monitoring.
-  
-- **Authentication**: Middlewares can be used to check if a user is authenticated before allowing access to specific routes or resources.
-  
-- **Route-Specific Operations**: You can apply middlewares to specific routes. For example, you might want to verify an API token for specific routes or perform data validation only for certain endpoints.
-  
-- **Error Handling**: Middlewares can handle errors and provide meaningful error messages to the client. Express has a default error handler for unhandled exceptions.
-
-### Using Next()
-
-The `next()` function is a critical part of middleware functions. Calling `next()` passes control to the next middleware in the chain. If `next()` is not called, the request-response cycle will be terminated, and the response will be sent back to the client.
-
-### Express Built-in and Third-party Middlewares
-
-Express comes with built-in middlewares like `express.json()`, `express.urlencoded()`, and more for parsing request bodies. Additionally, you can use third-party middlewares to extend the functionality of your Express application. Common third-party middlewares include `morgan` for request logging and `helmet` for security.
-
-```javascript
-const express = require("express");
-const app = express();
-
-// Built-in middleware for parsing JSON
-app.use(express.json());
-
-// Third-party middleware for request logging
-const morgan = require("morgan");
-app.use(morgan("combined"));
-```
-
-### Creating Utility Middleware and Logger
-
-You can create your own utility middlewares to perform tasks such as logging or adding custom properties to the request object.
-
-```javascript
-// Logger middleware
-app.use((req, res, next) => {
-    req.time = new Date(Date.now()).toString();
-    console.log(req.method, req.hostname, req.path, req.time);
-    next();
-});
-```
-
-In the above example, the middleware adds a `time` property to the request object, logs the request method, hostname, path, and the time it was received.
-
-### Exploring `app.use()`
-
-The `app.use()` method is used to mount a middleware function to a specific route. Middleware functions added using `app.use()` will be executed for all HTTP methods on that route.
-
-```javascript
-app.use("/random", (req, res, next) => {
-    console.log("I am only for the '/random' route");
-});
-```
-
-This middleware will be executed only for requests to the `/random` route.
-
-### API Token as Query String
-
-You can create a middleware that checks for an API token passed as a query parameter.
-
-```javascript
-const checkToken = (req, res, next) => {
-    let { token } = req.query;
-    if (token === "giveaccess") {
-        next();
-    }
-    res.send("ACCESS DENIED!");
-};
-```
-
-The `checkToken` middleware checks if the token query parameter is equal to "giveaccess" and allows or denies access accordingly.
-
-### Passing Multiple Middleware
-
-Multiple middleware functions can be added to a route, and they will be executed in the order they are defined. This allows you to handle various aspects of a request.
-
-```javascript
-app.get("/api", checkToken, (req, res) => {
-    res.send("Data from an authenticated route");
-});
-```
-
-In this example, the route `/api` uses the `checkToken` middleware to ensure access is granted only with a valid API token.
-
-### Error Handling (Express Default)
-
-Express has a default error-handling mechanism. When an error occurs within a middleware or route handler, you can pass the error to the `next()` function, and it will be caught by the default error handler.
-
-```javascript
-app.get("/wrong", (req, res) => {
-    // Simulating an error
-    // Unhandled errors will be caught by the default error handler
-    abc = abc;
-});
-```
-
-In this example, we intentionally create an error by trying to access an undefined variable. Express will handle this error, and an error response will be sent to the client.
-
-## Conclusion
-
-Middleware functions in Express are powerful tools for controlling and managing the flow of HTTP requests and responses. They enable you to handle various aspects of request processing, including logging, authentication, route-specific
-
- operations, and error handling. By understanding and using middleware effectively, you can build robust and feature-rich web applications.
 
 
 ---------------------------------------------------------------------------------------
