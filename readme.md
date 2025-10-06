@@ -702,6 +702,15 @@ HTTP (Hypertext Transfer Protocol) is the foundation of data communication on th
 - Commonly used for read-only operations that don't change server state.
 - Data is appended to the URL as query parameters.
 - Suitable for fetching data like articles, search queries, or product listings.
+- `req.query` is used to retrive data.
+
+```javascript
+// data will be visible on url not safe method
+app.get('/get-form-data',(req,res)=>{  // 
+    console.log(req.query);
+    res.send('data received')  
+})
+```
 
 ### POST Request
 
@@ -720,6 +729,9 @@ To handle POST requests, you need a web server and code to process incoming requ
 const express = require("express");
 const app = express();
 const port = 4040;
+app.use(express.json())  
+app.use(express.urlencoded({extended: true}))
+//or you 
 app.use(express.urlencoded({ extended: true }));
 ```
 
@@ -729,14 +741,22 @@ app.use(express.urlencoded({ extended: true }));
 
 #### Receiving POST Data
 
-```javascript
+```js
+app.post('/get-form-data',(req,res)=>{  
+    console.log(req.body);
+    res.send('data received')
+    
+})
+```
+```js
+//another example
 app.post("/register", (req, res) => {
     let { user, password } = req.body;
     res.send(`post response, Welcome to ${user}`);
 });
 ```
 
-- Defines a route for handling POST requests to "/register".
+- Defines a route for handling POST requests to `/get-form-data` or `"/register"`.
 - Extracts user and password from the request's body.
 - Responds with a message including the extracted user.
 
@@ -774,6 +794,7 @@ app.listen(port, () => {
 - HTML forms are provided for testing GET and POST requests.
 - The "Get Request form" sends a GET request to "/register" with username and password fields.
 - The "Post Request form" sends a POST request to "/register" with username and password fields.
+  - If we dont use `name=" "` we will recieve a empty object `{}`. 
 
 
 ---------------------------------------------------------------------------------------
